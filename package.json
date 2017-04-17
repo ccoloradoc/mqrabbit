@@ -1,0 +1,15 @@
+{
+  "name": "mqrabbit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mqrabbit",
+    "nodejs"
+  ],
+  "author": "Cristian Colorado<cristian@wedevelop.mx>",
+  "license": "ISC"
+}
