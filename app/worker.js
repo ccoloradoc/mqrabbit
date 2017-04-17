@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 var config = require('./config');
-var cp = require('./modules/cp');
+var MQService = require('./modules/mqservice');
 
-cp.worker(config.MQ_URL, 'task_queue', function(msg, callback) {
-    console.log(" [x] Received %s", msg.content.toString());
-    callback();
+var service = new MQService(config);
+
+service.subscribe('task_queue', function(msg, processed) {
+  console.log(" [x] Received %s", msg.content.toString());
+  processed();
 });
