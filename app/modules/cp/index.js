@@ -14,9 +14,9 @@ module.exports = {
   worker: function(url, task, callback) {
     amqp.connect(url, function(err, conn) {
       conn.createChannel(function(err, ch) {
-        ch.assertQueue(q, {durable: true});
+        ch.assertQueue(task, {durable: true});
         ch.prefetch(1);
-        ch.consume(q, function(msg) {
+        ch.consume(task, function(msg) {
           callback(msg, function() {
             ch.ack(msg);
           });
