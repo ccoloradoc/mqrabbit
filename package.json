@@ -11,5 +11,8 @@
     "nodejs"
   ],
   "author": "Cristian Colorado<cristian@wedevelop.mx>",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "colors": "^1.1.2"
+  }
 }
