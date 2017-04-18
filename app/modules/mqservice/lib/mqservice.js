@@ -15,59 +15,53 @@ class MQService {
     }
   }
 
-  send(task, payload, callback) {
+  connect(fnc, close) {
     amqp.connect(this.MQ_URL + "?heartbeat=60", function(err, conn) {
-      conn.createChannel(function(err, ch) {
-        ch.assertQueue(task, {durable: true});
-        ch.sendToQueue(task, new Buffer(payload), {persistent: true});
-        callback(payload);
-      });
-      setTimeout(function() { conn.close(); }, 500);
+      conn.createChannel(fnc);
+      if(close)
+        setTimeout(function() { conn.close(); }, 500);
     });
+  }
+
+  send(task, payload, callback) {
+    this.connect(function(err, ch) {
+      ch.assertQueue(task, {durable: true});
+      ch.sendToQueue(task, new Buffer(payload), {persistent: true});
+      callback(payload);
+    }, true);
   }
 
   subscribe(task, callback) {
-    amqp.connect(this.MQ_URL + "?heartbeat=60", function(err, conn) {
-      conn.createChannel(function(err, ch) {
-        ch.assertQueue(task, {durable: true});
-        ch.prefetch(1);
-        ch.consume(task, function(msg) {
-          callback(msg, function() {
-            ch.ack(msg);
-          });
-        }, {noAck: false});
-      });
-    });
+    this.connect(function(err, ch) {
+      ch.assertQueue(task, {durable: true});
+      ch.prefetch(1);
+      ch.consume(task, function(msg) {
+        callback(msg, function() {
+          ch.ack(msg);
+        });
+      }, {noAck: false});
+    }, false);
   }
 
   fanout(ex, payload) {
-    amqp.connect(this.MQ_URL, function(err, conn) {
-      conn.createChannel(function(err, ch) {
-        ch.assertExchange(ex, 'fanout', {durable: false});
-        ch.publish(ex, '', new Buffer(payload));
-        //console.log(" [x] Sent %s", payload);
-      });
-
-      setTimeout(function() { conn.close();}, 500);
-    });
+    this.connect(function(err, ch) {
+      ch.assertExchange(ex, 'fanout', {durable: false});
+      ch.publish(ex, '', new Buffer(payload));
+    }, true);
   }
 
   exchange(ex, callback) {
-    amqp.connect(this.MQ_URL, function(err, conn) {
-      conn.createChannel(function(err, ch) {
-        ch.assertExchange(ex, 'fanout', {durable: false});
+    this.connect(function(err, ch) {
+      ch.assertExchange(ex, 'fanout', {durable: false});
 
-        ch.assertQueue('', {exclusive: true}, function(err, q) {
-          //console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
-          ch.bindQueue(q.queue, ex, '');
+      ch.assertQueue('', {exclusive: true}, function(err, q) {
+        ch.bindQueue(q.queue, ex, '');
 
-          ch.consume(q.queue, function(payload) {
-            //console.log(" [x] %s", msg.content.toString());
-            callback(payload.content.toString());
-          }, {noAck: true});
-        });
+        ch.consume(q.queue, function(payload) {
+          callback(payload.content.toString());
+        }, {noAck: true});
       });
-    });
+    }, false);
   }
 }
 

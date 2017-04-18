@@ -13,6 +13,7 @@
   "author": "Cristian Colorado<cristian@wedevelop.mx>",
   "license": "ISC",
   "dependencies": {
+    "amqplib": "^0.5.1",
     "colors": "^1.1.2"
   }
 }
